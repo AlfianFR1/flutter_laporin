@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "558565645671",
+    "project_id": "laporin-8b6af",
+    "storage_bucket": "laporin-8b6af.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:558565645671:android:a8f706cc5fbec4d77863c2",
+        "android_client_info": {
+          "package_name": "com.example.laporin"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "558565645671-teh9f8rg5t7sh3n0e1e6tsin1vk4sqaa.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.laporin",
+            "certificate_hash": "a04442fbcfd41fc39257e0b8010e5630d177c7a9"
+          }
+        },
+        {
+          "client_id": "558565645671-u6j6hu9nto07ac1da09p02g2p39hq1l3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC1RflY_Kh2oKZ51EBbhB15gIfhgnSrIFk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "558565645671-u6j6hu9nto07ac1da09p02g2p39hq1l3.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "558565645671-lr9fpbb79gntk9p00j1o756btv7b1tp8.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.laporin"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

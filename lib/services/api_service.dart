@@ -241,18 +241,41 @@ static Future<List<Map<String, dynamic>>> ambilSemuaUsers() async {
     return token;
   }
 
-  static Future<Map<String, dynamic>> _parseResponse(http.Response response) async {
-    try {
-      final data = jsonDecode(response.body);
-      if (response.statusCode >= 200 && response.statusCode < 300) {
-        return data;
-      } else {
-        throw Exception(data['message'] ?? 'Terjadi kesalahan');
-      }
-    } catch (_) {
-      throw Exception('Server tidak merespons dengan benar (kode ${response.statusCode})');
-    }
+  static Future<Map<String, dynamic>> loginWithFirebaseIdToken(String idToken) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/auth/login'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'idToken': idToken}),
+    );
+
+    return await _parseResponse(response);
   }
+
+static Future<Map<String, dynamic>> _parseResponse(http.Response response) async {
+  final contentType = response.headers['content-type'] ?? '';
+  final body = response.body;
+
+  try {
+    if (!contentType.contains('application/json')) {
+      // Log isi body untuk debugging kalau perlu
+      throw Exception();
+    }
+
+    final data = jsonDecode(body);
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return data;
+    } else {
+      throw Exception(data['message'] ?? 'Terjadi kesalahan');
+    }
+  } on FormatException catch (e) {
+    throw Exception('Gagal decode JSON: ${e.message}\nBody: $body');
+  } catch (e) {
+    throw Exception('Server error (${response.statusCode})');
+  }
+}
+
+
 
   static String _handleResponse(int statusCode, String body) {
     try {

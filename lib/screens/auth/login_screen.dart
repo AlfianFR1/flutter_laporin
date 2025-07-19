@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:laporin/services/firebase_google_signin_service.dart';
+import 'package:laporin/utils/toast.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -21,19 +22,14 @@ class _LoginScreenState extends State<LoginScreen> {
       context: context,
       onSuccess: (role) {
         if (!mounted) return;
+        ToastUtil.showSuccess(context, "Login sukses");
         Future.microtask(() {
-          if (role == 'admin') {
-            context.go('/adminDashboard');
-          } else {
-            context.go('/userDashboard');
-          }
+          context.go(role == 'admin' ? '/adminDashboard' : '/userDashboard');
         });
       },
       onError: (error) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Login Google gagal: $error')),
-        );
+        ToastUtil.showError(context, error.toString());
         setState(() => _isLoading = false);
       },
     );
@@ -49,20 +45,18 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-
-                  // Judul Aplikasi
-            Text(
-              'Lapor Pak Kades!',
-              style: GoogleFonts.poppins(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
+              // Judul Aplikasi
+              Text(
+                'Lapor Pak Kades!',
+                style: GoogleFonts.poppins(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-              // App logo / icon
+              const SizedBox(height: 8),
 
-
+              // Subjudul
               Text(
                 'Selamat Datang!',
                 style: GoogleFonts.poppins(
@@ -76,16 +70,26 @@ class _LoginScreenState extends State<LoginScreen> {
               Text(
                 'Silakan login menggunakan akun Google Anda',
                 textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[700]),
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  color: Colors.grey[700],
+                ),
               ),
               const SizedBox(height: 32),
-                            CircleAvatar(
+
+              // Icon avatar
+              CircleAvatar(
                 radius: 48,
                 backgroundColor: Colors.deepPurple.shade100,
-                child: const Icon(Icons.lock, size: 48, color: Colors.deepPurple),
+                child: const Icon(
+                  Icons.lock,
+                  size: 48,
+                  color: Colors.deepPurple,
+                ),
               ),
               const SizedBox(height: 24),
 
+              // Tombol login
               _isLoading
                   ? const CircularProgressIndicator()
                   : ElevatedButton.icon(
@@ -106,8 +110,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         side: const BorderSide(color: Colors.grey),
-                        shadowColor: Colors.black12,
                         elevation: 3,
+                        shadowColor: Colors.black12,
                       ),
                     ),
             ],

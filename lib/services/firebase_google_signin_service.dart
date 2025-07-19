@@ -7,6 +7,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import 'package:laporin/providers/user_provider.dart';
+import 'package:laporin/services/api_service.dart';
 import 'package:laporin/services/preferences_helper.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -123,15 +124,12 @@ class FirebaseGoogleSignInService {
   }
 }
 
-
-  Future<void> signInWithGoogle({
-  
+Future<void> signInWithGoogle({
   required BuildContext context,
   required Function(String role) onSuccess,
-  required Function(String error) onError,
+  required Function(Object error) onError,
 }) async {
   try {
-    
     print('🚀 Memulai login dengan Google');
 
     // 1. Autentikasi Google
@@ -142,12 +140,10 @@ class FirebaseGoogleSignInService {
 
     final googleAuth = await googleUser.authentication;
 
-    // 2. Login ke Firebase Auth pakai Google ID Token
+    // 2. Login ke Firebase Auth
     final credential = GoogleAuthProvider.credential(
       idToken: googleAuth.idToken,
     );
-
-    
 
     final userCredential =
         await FirebaseAuth.instance.signInWithCredential(credential);
@@ -157,70 +153,57 @@ class FirebaseGoogleSignInService {
       return onError("Login Firebase gagal: user null");
     }
 
-    // 3. Ambil Firebase ID Token
     final firebaseIdToken = await firebaseUser.getIdToken();
 
+    // 3. Kirim token ke backend (pakai ApiService)
+    final data = await ApiService.loginWithFirebaseIdToken(firebaseIdToken!);
+    final role = data['role'] ?? 'user';
 
-
-    // 4. Kirim token ke backend
-    final response = await http.post(
-      Uri.parse('https://laporin.alfianfr.my.id/auth/login'), // Ganti jika beda
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'idToken': firebaseIdToken}),
+    // 4. Simpan ke local storage
+    await PreferencesHelper.saveUser(
+      uid: firebaseUser.uid,
+      email: firebaseUser.email ?? '',
+      role: role,
+      displayName: firebaseUser.displayName ?? '',
+      photoURL: firebaseUser.photoURL ?? '',
     );
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      final role = data['role'] ?? 'user';
+    // 5. Set juga ke provider
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    await userProvider.setUser(
+      firebaseUser.uid,
+      firebaseUser.email ?? '',
+      role,
+      newDisplayName: firebaseUser.displayName,
+      newPhotoURL: firebaseUser.photoURL,
+    );
 
-      // 5. Simpan ke local storage
-      await PreferencesHelper.saveUser(
-        uid: firebaseUser.uid,
-        email: firebaseUser.email ?? '',
-        role: role,
-        displayName: firebaseUser.displayName ?? '',
-        photoURL: firebaseUser.photoURL ?? '',
-      );
+    print('✅ Login berhasil, role: $role');
 
-      // 6. Set juga ke provider
-      final userProvider = Provider.of<UserProvider>(context, listen: false);
-      await userProvider.setUser(
-        firebaseUser.uid,
-        firebaseUser.email ?? '',
-        role,
-        newDisplayName: firebaseUser.displayName,
-        newPhotoURL: firebaseUser.photoURL,
-      );
-
-      print('✅ Login berhasil, role: $role');
-
-      // ✅ SIMPAN FCM TOKEN DI SINI
-      final fcmToken = await FirebaseMessaging.instance.getToken();
-      if (fcmToken != null) {
-        await FirebaseFirestore.instance.collection('users').doc(firebaseUser.uid).update({
-          'fcm_token': fcmToken,
-        });
-        print('🔐 FCM token disimpan: $fcmToken');
-      }
-      FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
+    // 6. Simpan token FCM
+    final fcmToken = await FirebaseMessaging.instance.getToken();
+    if (fcmToken != null) {
       await FirebaseFirestore.instance
           .collection('users')
           .doc(firebaseUser.uid)
-          .update({
-        'fcm_token': newToken,
-      });
-      print('🔄 Token diperbarui dan disimpan ulang: $newToken');
+          .update({'fcm_token': fcmToken});
+      print('🔐 FCM token disimpan: $fcmToken');
+    }
+
+    FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(firebaseUser.uid)
+          .update({'fcm_token': newToken});
+      print('🔄 Token FCM diperbarui: $newToken');
     });
 
-      onSuccess(role);
-    } else {
-      final error = jsonDecode(response.body)['error'] ?? 'Login gagal';
-      onError('Server: $error');
-    }
+    onSuccess(role);
   } catch (e) {
-    onError('❌ Error login Google: ${e.toString()}');
+    onError(e); // Tangani error cukup satu kali di sini
   }
 }
+
   Future<void> signOut() async {
     print('👋 Logout...');
     try {

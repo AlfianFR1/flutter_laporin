@@ -1,31 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:laporin/providers/user_provider.dart';
 import 'package:laporin/services/api_service.dart';
-import 'package:provider/provider.dart';
-import 'package:google_fonts/google_fonts.dart';
 
-class AdminDashboardScreen extends StatefulWidget {
+final statistikProvider = FutureProvider<Map<String, dynamic>>((ref) async {
+  return ApiService.ambilSemuaStatistikLaporan();
+});
+
+class AdminDashboardScreen extends ConsumerWidget {
   const AdminDashboardScreen({super.key});
 
-  @override
-  State<AdminDashboardScreen> createState() => _AdminDashboardScreenState();
-}
-
-class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
-  late Future<Map<String, dynamic>> _statistikFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _statistikFuture = ApiService.ambilSemuaStatistikLaporan();
-  }
-
-  void _logout(BuildContext context) async {
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
-    await FirebaseAuth.instance.signOut();
-    await userProvider.clearUser();
+  void _logout(BuildContext context, WidgetRef ref) async {
+    await ref.read(userProvider.notifier).clearUser();
     context.go('/login');
   }
 
@@ -34,8 +22,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final userProvider = Provider.of<UserProvider>(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userState = ref.watch(userProvider);
+    final statistik = ref.watch(statistikProvider);
+
+    final user = userState.asData?.value;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
@@ -54,7 +45,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Logout',
-            onPressed: () => _logout(context),
+            onPressed: () => _logout(context, ref),
           ),
         ],
       ),
@@ -81,11 +72,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 children: [
                   CircleAvatar(
                     radius: 32,
-                    backgroundImage: userProvider.photoURL != null
-                        ? NetworkImage(userProvider.photoURL!)
+                    backgroundImage: user?.photoURL != null
+                        ? NetworkImage(user!.photoURL!)
                         : null,
                     backgroundColor: Colors.deepPurple.shade100,
-                    child: userProvider.photoURL == null
+                    child: user?.photoURL == null
                         ? const Icon(Icons.person, size: 32, color: Colors.deepPurple)
                         : null,
                   ),
@@ -95,7 +86,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Halo, ${userProvider.displayName ?? 'Admin'}',
+                          'Halo, ${user?.displayName ?? 'Admin'}',
                           style: GoogleFonts.poppins(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -103,7 +94,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          userProvider.email ?? '-',
+                          user?.email ?? '-',
                           style: GoogleFonts.poppins(
                             fontSize: 14,
                             color: Colors.grey[700],
@@ -117,29 +108,20 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             ),
             const SizedBox(height: 24),
 
-            // Statistik
-            FutureBuilder<Map<String, dynamic>>(
-              future: _statistikFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return const Text('❌ Gagal memuat statistik');
-                }
-
-                final data = snapshot.data!;
-                return Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _StatBox(label: 'Laporan', value: data['total'], color: Colors.deepPurple),
-                    _StatBox(label: 'Selesai', value: data['resolved'], color: Colors.green),
-                    _StatBox(label: 'Ditolak', value: data['rejected'], color: Colors.redAccent),
-                  ],
-                );
-              },
+            statistik.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (_, __) => const Text('❌ Gagal memuat statistik'),
+              data: (data) => Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _StatBox(label: 'Laporan', value: data['total'], color: Colors.deepPurple),
+                  _StatBox(label: 'Selesai', value: data['resolved'], color: Colors.green),
+                  _StatBox(label: 'Ditolak', value: data['rejected'], color: Colors.redAccent),
+                ],
+              ),
             ),
-            const SizedBox(height: 24),
 
+            const SizedBox(height: 24),
             Center(
               child: Text(
                 'Menu Admin',
@@ -151,7 +133,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               ),
             ),
             const SizedBox(height: 16),
-
 
             GridView.count(
               shrinkWrap: true,
@@ -166,7 +147,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   color: Colors.orange,
                   onTap: () async {
                     await context.push('/manajemen-laporan');
-                    setState(() {});
                   },
                 ),
                 _AdminMenuCard(

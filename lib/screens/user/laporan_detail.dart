@@ -2,22 +2,23 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:laporin/providers/user_provider.dart';
 import 'package:laporin/services/api_service.dart';
 import 'package:laporin/utils/date_formatter.dart';
 import 'package:provider/provider.dart';
 
-class LaporanDetailScreen extends StatefulWidget {
+class LaporanDetailScreen extends ConsumerStatefulWidget {
   final int reportId;
 
   const LaporanDetailScreen({super.key, required this.reportId});
 
   @override
-  State<LaporanDetailScreen> createState() => _LaporanDetailScreenState();
+  ConsumerState<LaporanDetailScreen> createState() => _LaporanDetailScreenState();
 }
 
-class _LaporanDetailScreenState extends State<LaporanDetailScreen> {
+class _LaporanDetailScreenState extends ConsumerState<LaporanDetailScreen> {
   late Future<void> _loadDataFuture;
   Map<String, dynamic> report = {};
   List<Map<String, dynamic>> comments = [];
@@ -236,8 +237,13 @@ class _LaporanDetailScreenState extends State<LaporanDetailScreen> {
   }
 
   Widget _buildKomentarList() {
+  final user = ref.watch(userProvider).maybeWhen(
+    data: (data) => data,
+    orElse: () => null,
+  );
+  final currentUid = user?.uid ?? '';
+
   final bool isEditable = !['canceled', 'rejected', 'resolved'].contains(report['status']);
-  final currentUid = Provider.of<UserProvider>(context, listen: false).uid;
 
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
@@ -268,12 +274,9 @@ class _LaporanDetailScreenState extends State<LaporanDetailScreen> {
                   ],
                 )
               : null,
-
           );
         }),
-
       const SizedBox(height: 12),
-
       if (isEditable)
         Align(
           alignment: Alignment.centerRight,
@@ -289,9 +292,14 @@ class _LaporanDetailScreenState extends State<LaporanDetailScreen> {
 
 
 
+
   @override
   Widget build(BuildContext context) {
-    final currentUid = Provider.of<UserProvider>(context, listen: false).uid;
+    final user = ref.watch(userProvider).maybeWhen(
+    data: (data) => data,
+    orElse: () => null,
+  );
+  final currentUid = user?.uid ?? '';
 
     return Scaffold(
       appBar: AppBar(title: const Text('Detail Laporan')),

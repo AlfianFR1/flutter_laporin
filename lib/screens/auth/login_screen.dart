@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:laporin/services/firebase_google_signin_service.dart';
 import 'package:laporin/utils/toast.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
-  @override
-  State<LoginScreen> createState() => _LoginScreenState();
+ 
+@override
+ConsumerState<LoginScreen> createState() => _LoginScreenState();
+
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _googleSignInService = FirebaseGoogleSignInService();
   bool _isLoading = false;
 
@@ -31,7 +34,7 @@ class _LoginScreenState extends State<LoginScreen> {
         if (!mounted) return;
         ToastUtil.showError(context, error.toString());
         setState(() => _isLoading = false);
-      },
+      }, ref: ref,
     );
   }
 

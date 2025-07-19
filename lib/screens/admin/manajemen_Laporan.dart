@@ -1,38 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:laporin/services/api_service.dart';
-import 'package:provider/provider.dart';
-import '../../providers/user_provider.dart';
 
-class ManajemenLaporanScreen extends StatefulWidget {
+final laporanProvider = FutureProvider.family<List<Map<String, dynamic>>, String>((ref, status) async {
+  final semua = await ApiService.ambilSemuaLaporan();
+  if (status == 'all') return semua;
+  return semua.where((laporan) => laporan['status'] == status).toList();
+});
+
+class ManajemenLaporanScreen extends ConsumerStatefulWidget {
   const ManajemenLaporanScreen({super.key});
 
   @override
-  State<ManajemenLaporanScreen> createState() => _ManajemenLaporanScreenState();
+  ConsumerState<ManajemenLaporanScreen> createState() => _ManajemenLaporanScreenState();
 }
 
-class _ManajemenLaporanScreenState extends State<ManajemenLaporanScreen> {
-  late Future<List<Map<String, dynamic>>> _laporanFuture;
+class _ManajemenLaporanScreenState extends ConsumerState<ManajemenLaporanScreen> {
   String _selectedStatus = 'all';
-
-  @override
-  void initState() {
-    super.initState();
-    final uid = Provider.of<UserProvider>(context, listen: false).uid;
-    if (uid != null) {
-      _laporanFuture = _filterLaporan(_selectedStatus);
-    } else {
-      _laporanFuture = Future.error('UID tidak ditemukan');
-    }
-  }
-
-  Future<List<Map<String, dynamic>>> _filterLaporan(String status) async {
-    final semuaLaporan = await ApiService.ambilSemuaLaporan();
-    if (status == 'all') return semuaLaporan;
-    return semuaLaporan.where((laporan) => laporan['status'] == status).toList();
-  }
 
   Color _statusColor(String status) {
     switch (status) {
@@ -53,6 +40,8 @@ class _ManajemenLaporanScreenState extends State<ManajemenLaporanScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final laporanAsync = ref.watch(laporanProvider(_selectedStatus));
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
@@ -87,30 +76,18 @@ class _ManajemenLaporanScreenState extends State<ManajemenLaporanScreen> {
               ],
               onChanged: (value) {
                 if (value != null) {
-                  setState(() {
-                    _selectedStatus = value;
-                    _laporanFuture = _filterLaporan(_selectedStatus);
-                  });
+                  setState(() => _selectedStatus = value);
                 }
               },
             ),
           ),
           Expanded(
-            child: FutureBuilder<List<Map<String, dynamic>>>(
-              future: _laporanFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(
-                    child: Text(
-                      'Error: ${snapshot.error}',
-                      style: GoogleFonts.poppins(color: Colors.red),
-                    ),
-                  );
-                }
-
-                final laporanList = snapshot.data!;
+            child: laporanAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (err, _) => Center(
+                child: Text('Error: $err', style: GoogleFonts.poppins(color: Colors.red)),
+              ),
+              data: (laporanList) {
                 if (laporanList.isEmpty) {
                   return Center(
                     child: Text(

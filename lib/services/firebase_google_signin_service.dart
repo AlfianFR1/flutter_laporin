@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
@@ -125,9 +126,9 @@ class FirebaseGoogleSignInService {
 }
 
 Future<void> signInWithGoogle({
-  required BuildContext context,
+  required WidgetRef ref,
   required Function(String role) onSuccess,
-  required Function(Object error) onError,
+  required Function(Object error) onError, required BuildContext context,
 }) async {
   try {
     print('🚀 Memulai login dengan Google');
@@ -169,14 +170,14 @@ Future<void> signInWithGoogle({
     );
 
     // 5. Set juga ke provider
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
-    await userProvider.setUser(
-      firebaseUser.uid,
-      firebaseUser.email ?? '',
-      role,
-      newDisplayName: firebaseUser.displayName,
-      newPhotoURL: firebaseUser.photoURL,
-    );
+await ref.read(userProvider.notifier).setUser(
+  firebaseUser.uid,
+  firebaseUser.email ?? '',
+  role,
+  displayName: firebaseUser.displayName,
+  photoURL: firebaseUser.photoURL,
+);
+
 
     print('✅ Login berhasil, role: $role');
 

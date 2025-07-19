@@ -1,19 +1,21 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:laporin/providers/user_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../services/api_service.dart';
 
-class BuatLaporanScreen extends StatefulWidget {
+class BuatLaporanScreen extends ConsumerStatefulWidget {
+
   const BuatLaporanScreen({super.key});
 
   @override
-  State<BuatLaporanScreen> createState() => _BuatLaporanScreenState();
+  ConsumerState<BuatLaporanScreen> createState() => _BuatLaporanScreenState();
 }
 
-class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
+class _BuatLaporanScreenState extends ConsumerState<BuatLaporanScreen> {
   final _formKey = GlobalKey<FormState>();
   final _judulController = TextEditingController();
   final _deskripsiController = TextEditingController();
@@ -40,8 +42,9 @@ class _BuatLaporanScreenState extends State<BuatLaporanScreen> {
     setState(() => _loading = true);
 
     try {
-      final userProvider = Provider.of<UserProvider>(context, listen: false);
-      final uid = userProvider.uid;
+final user = ref.read(userProvider).asData?.value;
+final uid = user?.uid;
+
 
       if (uid == null) {
         throw Exception('User tidak ditemukan di provider');

@@ -3,7 +3,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import './user_state.dart';
+import '../models/user_state.dart';
 
 class UserNotifier extends AsyncNotifier<UserState> {
   @override

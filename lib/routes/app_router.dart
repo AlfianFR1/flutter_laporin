@@ -1,5 +1,5 @@
 import 'package:go_router/go_router.dart';
-import 'package:laporin/providers/user_state.dart';
+import 'package:laporin/models/user_state.dart';
 import 'package:laporin/screens/admin/daftar_pengguna.dart';
 import 'package:laporin/screens/admin/manajemen_Laporan.dart';
 import 'package:laporin/screens/admin/manajemen_laporan_detail.dart';

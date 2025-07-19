@@ -14,16 +14,12 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:laporin/services/firebase_user_service.dart';
 
-
-
 class FirebaseGoogleSignInService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
   final FirebaseUserService _userService = FirebaseUserService();
   bool _isFirebaseSigningIn = false;
-
-
 
   final StreamController<GoogleSignInAccount?> _googleUserStreamController =
       StreamController<GoogleSignInAccount?>.broadcast();
@@ -42,16 +38,17 @@ class FirebaseGoogleSignInService {
       GoogleSignIn.instance
           .initialize()
           .then((_) {
-        print('✅ GoogleSignIn siap.');
-        // _authEventSubscription = GoogleSignIn.instance.authenticationEvents
-        //     .listen(
-        //       _handleAuthEvent,
-        //       onError: _handleAuthError,
-        //     );
-        // Tidak memanggil attemptLightweightAuthentication agar tidak langsung login otomatis
-      }).catchError((error) {
-        print('❌ Gagal inisialisasi GoogleSignIn: $error');
-      }),
+            print('✅ GoogleSignIn siap.');
+            // _authEventSubscription = GoogleSignIn.instance.authenticationEvents
+            //     .listen(
+            //       _handleAuthEvent,
+            //       onError: _handleAuthError,
+            //     );
+            // Tidak memanggil attemptLightweightAuthentication agar tidak langsung login otomatis
+          })
+          .catchError((error) {
+            print('❌ Gagal inisialisasi GoogleSignIn: $error');
+          }),
     );
   }
 
@@ -79,131 +76,135 @@ class FirebaseGoogleSignInService {
   }
 
   Future<void> _firebaseSignIn(GoogleSignInAccount googleUser) async {
-    
-  if (_isFirebaseSigningIn) return; // ⛔ Jangan lanjut kalau sudah login
-  _isFirebaseSigningIn = true;
+    if (_isFirebaseSigningIn) return; // ⛔ Jangan lanjut kalau sudah login
+    _isFirebaseSigningIn = true;
 
-  try {
-    final auth = await googleUser.authentication;
-    final credential = GoogleAuthProvider.credential(idToken: auth.idToken);
-    final userCredential = await _auth.signInWithCredential(credential);
-    final firebaseUser = userCredential.user;
+    try {
+      final auth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(idToken: auth.idToken);
+      final userCredential = await _auth.signInWithCredential(credential);
+      final firebaseUser = userCredential.user;
 
-    if (firebaseUser == null) {
-      throw FirebaseAuthException(
-        code: 'user-not-found',
-        message: "User tidak ditemukan setelah login.",
+      if (firebaseUser == null) {
+        throw FirebaseAuthException(
+          code: 'user-not-found',
+          message: "User tidak ditemukan setelah login.",
+        );
+      }
+
+      final bool exists = await _userService.userExists(firebaseUser.uid);
+      String role;
+
+      if (!exists) {
+        role =
+            (firebaseUser.email ?? '').toLowerCase() ==
+                'rohmanfatur.alfian@gmail.com'
+            ? 'admin'
+            : 'user';
+        await _userService.saveUserToFirestore(firebaseUser, role);
+        print('✅ User baru ditambahkan ke Firestore.');
+      } else {
+        role = await _userService.getUserRole(firebaseUser.uid) ?? 'user';
+        print('👥 User lama ditemukan. Role: $role');
+      }
+
+      await PreferencesHelper.saveUser(
+        uid: firebaseUser.uid,
+        email: firebaseUser.email ?? '',
+        role: role,
+        displayName: firebaseUser.displayName ?? '',
+        photoURL: firebaseUser.photoURL ?? '',
       );
+    } catch (e) {
+      print('❌ Error saat login Firebase: $e');
+      rethrow;
+    } finally {
+      _isFirebaseSigningIn = false; // ✅ Reset flag
     }
-
-    final bool exists = await _userService.userExists(firebaseUser.uid);
-    String role;
-
-    if (!exists) {
-      role = (firebaseUser.email ?? '').toLowerCase() == 'rohmanfatur.alfian@gmail.com'
-          ? 'admin'
-          : 'user';
-      await _userService.saveUserToFirestore(firebaseUser, role);
-      print('✅ User baru ditambahkan ke Firestore.');
-    } else {
-      role = await _userService.getUserRole(firebaseUser.uid) ?? 'user';
-      print('👥 User lama ditemukan. Role: $role');
-    }
-
-    await PreferencesHelper.saveUser(
-      uid: firebaseUser.uid,
-      email: firebaseUser.email ?? '',
-      role: role,
-      displayName: firebaseUser.displayName ?? '',
-      photoURL: firebaseUser.photoURL ?? '',
-    );
-  } catch (e) {
-    print('❌ Error saat login Firebase: $e');
-    rethrow;
-  } finally {
-    _isFirebaseSigningIn = false; // ✅ Reset flag
   }
-}
 
-Future<void> signInWithGoogle({
-  required WidgetRef ref,
-  required Function(String role) onSuccess,
-  required Function(Object error) onError, required BuildContext context,
-}) async {
-  try {
-    print('🚀 Memulai login dengan Google');
+  Future<void> signInWithGoogle({
+    required WidgetRef ref,
+    required Function(String role) onSuccess,
+    required Function(Object error) onError,
+    required BuildContext context,
+  }) async {
+    try {
+      print('🚀 Memulai login dengan Google');
 
-    // 1. Autentikasi Google
-    final googleUser = await GoogleSignIn.instance.authenticate();
-    if (googleUser == null) {
-      return onError('Login dibatalkan oleh pengguna');
+      // 1. Autentikasi Google
+      final googleUser = await GoogleSignIn.instance.authenticate();
+      if (googleUser == null) {
+        return onError('Login dibatalkan oleh pengguna');
+      }
+
+      final googleAuth = await googleUser.authentication;
+
+      // 2. Login ke Firebase Auth
+      final credential = GoogleAuthProvider.credential(
+        idToken: googleAuth.idToken,
+      );
+
+      final userCredential = await FirebaseAuth.instance.signInWithCredential(
+        credential,
+      );
+      final firebaseUser = userCredential.user;
+
+      if (firebaseUser == null) {
+        return onError("Login Firebase gagal: user null");
+      }
+
+      final firebaseIdToken = await firebaseUser.getIdToken();
+
+      // 3. Kirim token ke backend (pakai ApiService)
+      final data = await ApiService.loginWithFirebaseIdToken(firebaseIdToken!);
+      final role = data['role'] ?? 'user';
+
+      // 4. Simpan ke local storage
+      await PreferencesHelper.saveUser(
+        uid: firebaseUser.uid,
+        email: firebaseUser.email ?? '',
+        role: role,
+        displayName: firebaseUser.displayName ?? '',
+        photoURL: firebaseUser.photoURL ?? '',
+      );
+
+      // 5. Set juga ke provider
+      await ref
+          .read(userProvider.notifier)
+          .setUser(
+            firebaseUser.uid,
+            firebaseUser.email ?? '',
+            role,
+            displayName: firebaseUser.displayName,
+            photoURL: firebaseUser.photoURL,
+          );
+
+      print('✅ Login berhasil, role: $role');
+
+      // 6. Simpan token FCM
+      final fcmToken = await FirebaseMessaging.instance.getToken();
+      if (fcmToken != null) {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(firebaseUser.uid)
+            .update({'fcm_token': fcmToken});
+        print('🔐 FCM token disimpan: $fcmToken');
+      }
+
+      FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(firebaseUser.uid)
+            .update({'fcm_token': newToken});
+        print('🔄 Token FCM diperbarui: $newToken');
+      });
+
+      onSuccess(role);
+    } catch (e) {
+      onError(e); // Tangani error cukup satu kali di sini
     }
-
-    final googleAuth = await googleUser.authentication;
-
-    // 2. Login ke Firebase Auth
-    final credential = GoogleAuthProvider.credential(
-      idToken: googleAuth.idToken,
-    );
-
-    final userCredential =
-        await FirebaseAuth.instance.signInWithCredential(credential);
-    final firebaseUser = userCredential.user;
-
-    if (firebaseUser == null) {
-      return onError("Login Firebase gagal: user null");
-    }
-
-    final firebaseIdToken = await firebaseUser.getIdToken();
-
-    // 3. Kirim token ke backend (pakai ApiService)
-    final data = await ApiService.loginWithFirebaseIdToken(firebaseIdToken!);
-    final role = data['role'] ?? 'user';
-
-    // 4. Simpan ke local storage
-    await PreferencesHelper.saveUser(
-      uid: firebaseUser.uid,
-      email: firebaseUser.email ?? '',
-      role: role,
-      displayName: firebaseUser.displayName ?? '',
-      photoURL: firebaseUser.photoURL ?? '',
-    );
-
-    // 5. Set juga ke provider
-await ref.read(userProvider.notifier).setUser(
-  firebaseUser.uid,
-  firebaseUser.email ?? '',
-  role,
-  displayName: firebaseUser.displayName,
-  photoURL: firebaseUser.photoURL,
-);
-
-
-    print('✅ Login berhasil, role: $role');
-
-    // 6. Simpan token FCM
-    final fcmToken = await FirebaseMessaging.instance.getToken();
-    if (fcmToken != null) {
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(firebaseUser.uid)
-          .update({'fcm_token': fcmToken});
-      print('🔐 FCM token disimpan: $fcmToken');
-    }
-
-    FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(firebaseUser.uid)
-          .update({'fcm_token': newToken});
-      print('🔄 Token FCM diperbarui: $newToken');
-    });
-
-    onSuccess(role);
-  } catch (e) {
-    onError(e); // Tangani error cukup satu kali di sini
   }
-}
 
   Future<void> signOut() async {
     print('👋 Logout...');
@@ -216,7 +217,6 @@ await ref.read(userProvider.notifier).setUser(
       print('❌ Error saat logout: $e');
     }
   }
-
 
   // Simpan user info (UID, email, role)
   Future<void> _saveUserToLocal(String uid, String email, String role) async {
@@ -246,7 +246,6 @@ await ref.read(userProvider.notifier).setUser(
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear(); // atau hapus satu per satu kalau perlu
   }
-
 
   void dispose() {
     _authEventSubscription?.cancel();

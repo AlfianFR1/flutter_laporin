@@ -6,9 +6,9 @@ import 'package:laporin/providers/user_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../services/api_service.dart';
+import 'package:laporin/utils/toast.dart';
 
 class BuatLaporanScreen extends ConsumerStatefulWidget {
-
   const BuatLaporanScreen({super.key});
 
   @override
@@ -42,9 +42,8 @@ class _BuatLaporanScreenState extends ConsumerState<BuatLaporanScreen> {
     setState(() => _loading = true);
 
     try {
-final user = ref.read(userProvider).asData?.value;
-final uid = user?.uid;
-
+      final user = ref.read(userProvider).asData?.value;
+      final uid = user?.uid;
 
       if (uid == null) {
         throw Exception('User tidak ditemukan di provider');
@@ -59,17 +58,15 @@ final uid = user?.uid;
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result)),
-      );
+      ToastUtil.showSuccess(context, result);
 
       _judulController.clear();
       _deskripsiController.clear();
       setState(() => _selectedImage = null);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('❌ Gagal mengirim: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('❌ Gagal mengirim: $e')));
     } finally {
       setState(() => _loading = false);
     }
@@ -100,7 +97,9 @@ final uid = user?.uid;
         padding: const EdgeInsets.all(20),
         child: Card(
           elevation: 3,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Form(
@@ -125,12 +124,15 @@ final uid = user?.uid;
                       labelText: 'Judul Laporan',
                       labelStyle: GoogleFonts.poppins(),
                       prefixIcon: const Icon(Icons.title),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       filled: true,
                       fillColor: Colors.white,
                     ),
-                    validator: (value) =>
-                        value == null || value.isEmpty ? 'Judul wajib diisi' : null,
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Judul wajib diisi'
+                        : null,
                   ),
                   const SizedBox(height: 20),
 
@@ -143,13 +145,16 @@ final uid = user?.uid;
                       labelText: 'Deskripsi Laporan',
                       labelStyle: GoogleFonts.poppins(),
                       prefixIcon: const Icon(Icons.description),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       filled: true,
                       fillColor: Colors.white,
                       alignLabelWithHint: true,
                     ),
-                    validator: (value) =>
-                        value == null || value.isEmpty ? 'Deskripsi wajib diisi' : null,
+                    validator: (value) => value == null || value.isEmpty
+                        ? 'Deskripsi wajib diisi'
+                        : null,
                   ),
                   const SizedBox(height: 20),
 
@@ -202,7 +207,10 @@ final uid = user?.uid;
                       : ElevatedButton.icon(
                           onPressed: _submit,
                           icon: const Icon(Icons.send),
-                          label: Text('Kirim Laporan', style: GoogleFonts.poppins()),
+                          label: Text(
+                            'Kirim Laporan',
+                            style: GoogleFonts.poppins(),
+                          ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.deepPurple,
                             foregroundColor: Colors.white,

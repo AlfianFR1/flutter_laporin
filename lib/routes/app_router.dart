@@ -16,7 +16,7 @@ class AppRouter {
   static GoRouter createRouter(UserState? userState) {
     final isLoggedIn = userState?.isLoggedIn ?? false;
     final role = userState?.role;
-    
+
     return GoRouter(
       initialLocation: '/',
       redirect: (context, state) {
@@ -47,10 +47,7 @@ class AppRouter {
         return null;
       },
       routes: [
-        GoRoute(
-          path: '/',
-          builder: (context, state) => const SplashScreen(),
-        ),
+        GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
         GoRoute(
           path: '/login',
           builder: (context, state) => const LoginScreen(),

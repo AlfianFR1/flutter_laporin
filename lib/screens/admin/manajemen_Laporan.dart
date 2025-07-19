@@ -5,20 +5,26 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:laporin/services/api_service.dart';
 
-final laporanProvider = FutureProvider.family<List<Map<String, dynamic>>, String>((ref, status) async {
-  final semua = await ApiService.ambilSemuaLaporan();
-  if (status == 'all') return semua;
-  return semua.where((laporan) => laporan['status'] == status).toList();
-});
+final laporanProvider =
+    FutureProvider.family<List<Map<String, dynamic>>, String>((
+      ref,
+      status,
+    ) async {
+      final semua = await ApiService.ambilSemuaLaporan();
+      if (status == 'all') return semua;
+      return semua.where((laporan) => laporan['status'] == status).toList();
+    });
 
 class ManajemenLaporanScreen extends ConsumerStatefulWidget {
   const ManajemenLaporanScreen({super.key});
 
   @override
-  ConsumerState<ManajemenLaporanScreen> createState() => _ManajemenLaporanScreenState();
+  ConsumerState<ManajemenLaporanScreen> createState() =>
+      _ManajemenLaporanScreenState();
 }
 
-class _ManajemenLaporanScreenState extends ConsumerState<ManajemenLaporanScreen> {
+class _ManajemenLaporanScreenState
+    extends ConsumerState<ManajemenLaporanScreen> {
   String _selectedStatus = 'all';
 
   Color _statusColor(String status) {
@@ -64,12 +70,21 @@ class _ManajemenLaporanScreenState extends ConsumerState<ManajemenLaporanScreen>
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
               ),
               items: const [
                 DropdownMenuItem(value: 'all', child: Text('Semua')),
-                DropdownMenuItem(value: 'pending', child: Text('Belum Diproses')),
-                DropdownMenuItem(value: 'on_progress', child: Text('Sedang Diproses')),
+                DropdownMenuItem(
+                  value: 'pending',
+                  child: Text('Belum Diproses'),
+                ),
+                DropdownMenuItem(
+                  value: 'on_progress',
+                  child: Text('Sedang Diproses'),
+                ),
                 DropdownMenuItem(value: 'resolved', child: Text('Selesai')),
                 DropdownMenuItem(value: 'rejected', child: Text('Ditolak')),
                 DropdownMenuItem(value: 'canceled', child: Text('Dibatalkan')),
@@ -85,14 +100,20 @@ class _ManajemenLaporanScreenState extends ConsumerState<ManajemenLaporanScreen>
             child: laporanAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (err, _) => Center(
-                child: Text('Error: $err', style: GoogleFonts.poppins(color: Colors.red)),
+                child: Text(
+                  'Error: $err',
+                  style: GoogleFonts.poppins(color: Colors.red),
+                ),
               ),
               data: (laporanList) {
                 if (laporanList.isEmpty) {
                   return Center(
                     child: Text(
                       'Tidak ada laporan untuk filter ini',
-                      style: GoogleFonts.poppins(fontSize: 16, color: Colors.grey[700]),
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        color: Colors.grey[700],
+                      ),
                     ),
                   );
                 }
@@ -106,10 +127,14 @@ class _ManajemenLaporanScreenState extends ConsumerState<ManajemenLaporanScreen>
 
                     return Card(
                       elevation: 4,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       margin: const EdgeInsets.only(bottom: 16),
                       child: InkWell(
-                        onTap: () => context.push('/manajemen-laporan-detail/${laporan['id']}'),
+                        onTap: () => context.push(
+                          '/manajemen-laporan-detail/${laporan['id']}',
+                        ),
                         borderRadius: BorderRadius.circular(12),
                         child: Padding(
                           padding: const EdgeInsets.all(16),
@@ -125,7 +150,11 @@ class _ManajemenLaporanScreenState extends ConsumerState<ManajemenLaporanScreen>
                                         fit: BoxFit.cover,
                                       ),
                                     )
-                                  : const Icon(Icons.image_not_supported, size: 60, color: Colors.grey),
+                                  : const Icon(
+                                      Icons.image_not_supported,
+                                      size: 60,
+                                      color: Colors.grey,
+                                    ),
                               const SizedBox(width: 16),
                               Expanded(
                                 child: Column(
@@ -151,7 +180,10 @@ class _ManajemenLaporanScreenState extends ConsumerState<ManajemenLaporanScreen>
                                     if (laporan['createdAt'] != null)
                                       Text(
                                         'Tanggal: ${DateFormat('dd MMM yyyy, HH:mm').format(DateTime.parse(laporan['createdAt']))}',
-                                        style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[700]),
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 12,
+                                          color: Colors.grey[700],
+                                        ),
                                       ),
                                   ],
                                 ),

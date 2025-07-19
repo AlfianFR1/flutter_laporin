@@ -2,8 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class FirebaseLaporanService {
-  final CollectionReference laporanRef =
-      FirebaseFirestore.instance.collection('laporan');
+  final CollectionReference laporanRef = FirebaseFirestore.instance.collection(
+    'laporan',
+  );
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
 

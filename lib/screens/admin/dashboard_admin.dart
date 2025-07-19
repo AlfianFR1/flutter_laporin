@@ -65,7 +65,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                     color: Colors.black12,
                     blurRadius: 6,
                     offset: const Offset(0, 3),
-                  )
+                  ),
                 ],
               ),
               child: Row(
@@ -77,7 +77,11 @@ class AdminDashboardScreen extends ConsumerWidget {
                         : null,
                     backgroundColor: Colors.deepPurple.shade100,
                     child: user?.photoURL == null
-                        ? const Icon(Icons.person, size: 32, color: Colors.deepPurple)
+                        ? const Icon(
+                            Icons.person,
+                            size: 32,
+                            color: Colors.deepPurple,
+                          )
                         : null,
                   ),
                   const SizedBox(width: 16),
@@ -114,9 +118,21 @@ class AdminDashboardScreen extends ConsumerWidget {
               data: (data) => Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _StatBox(label: 'Laporan', value: data['total'], color: Colors.deepPurple),
-                  _StatBox(label: 'Selesai', value: data['resolved'], color: Colors.green),
-                  _StatBox(label: 'Ditolak', value: data['rejected'], color: Colors.redAccent),
+                  _StatBox(
+                    label: 'Laporan',
+                    value: data['total'],
+                    color: Colors.deepPurple,
+                  ),
+                  _StatBox(
+                    label: 'Selesai',
+                    value: data['resolved'],
+                    color: Colors.green,
+                  ),
+                  _StatBox(
+                    label: 'Ditolak',
+                    value: data['rejected'],
+                    color: Colors.redAccent,
+                  ),
                 ],
               ),
             ),

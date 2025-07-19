@@ -50,14 +50,16 @@ class UserNotifier extends AsyncNotifier<UserState> {
       await prefs.setString('photo_url', photoURL);
     }
 
-    state = AsyncValue.data(UserState(
-      uid: uid,
-      email: email,
-      role: role,
-      displayName: displayName,
-      photoURL: photoURL,
-      isLoggedIn: true,
-    ));
+    state = AsyncValue.data(
+      UserState(
+        uid: uid,
+        email: email,
+        role: role,
+        displayName: displayName,
+        photoURL: photoURL,
+        isLoggedIn: true,
+      ),
+    );
   }
 
   Future<void> clearUser() async {

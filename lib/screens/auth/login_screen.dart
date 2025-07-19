@@ -8,10 +8,8 @@ import 'package:laporin/utils/toast.dart';
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
- 
-@override
-ConsumerState<LoginScreen> createState() => _LoginScreenState();
-
+  @override
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
@@ -34,7 +32,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         if (!mounted) return;
         ToastUtil.showError(context, error.toString());
         setState(() => _isLoading = false);
-      }, ref: ref,
+      },
+      ref: ref,
     );
   }
 
@@ -97,10 +96,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ? const CircularProgressIndicator()
                   : ElevatedButton.icon(
                       onPressed: _loginWithGoogle,
-                      icon: Image.asset(
-                        'assets/google_logo.png',
-                        height: 24,
-                      ),
+                      icon: Image.asset('assets/google_logo.png', height: 24),
                       label: Text(
                         'Login dengan Google',
                         style: GoogleFonts.poppins(fontSize: 16),

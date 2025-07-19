@@ -9,17 +9,18 @@ import 'package:laporin/utils/date_formatter.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-
 class ManajemenLaporanDetailScreen extends StatefulWidget {
   final int reportId;
 
   const ManajemenLaporanDetailScreen({super.key, required this.reportId});
 
   @override
-  State<ManajemenLaporanDetailScreen> createState() => _ManajemenLaporanDetailScreenState();
+  State<ManajemenLaporanDetailScreen> createState() =>
+      _ManajemenLaporanDetailScreenState();
 }
 
-class _ManajemenLaporanDetailScreenState extends State<ManajemenLaporanDetailScreen> {
+class _ManajemenLaporanDetailScreenState
+    extends State<ManajemenLaporanDetailScreen> {
   late Future<void> _loadDataFuture;
   Map<String, dynamic> report = {};
   List<Map<String, dynamic>> comments = [];
@@ -32,8 +33,12 @@ class _ManajemenLaporanDetailScreenState extends State<ManajemenLaporanDetailScr
   }
 
   Future<void> _loadData() async {
-    final detail = await ApiService.ambilDetailLaporan(widget.reportId.toString());
-    final status = await ApiService.ambilStatusHistoryByReportId(widget.reportId);
+    final detail = await ApiService.ambilDetailLaporan(
+      widget.reportId.toString(),
+    );
+    final status = await ApiService.ambilStatusHistoryByReportId(
+      widget.reportId,
+    );
     if (!mounted) return;
     setState(() {
       report = detail;
@@ -44,13 +49,18 @@ class _ManajemenLaporanDetailScreenState extends State<ManajemenLaporanDetailScr
 
   Future<void> _ubahStatus(String status) async {
     try {
-      await ApiService.updateStatusLaporan(id: widget.reportId.toString(), status: status);
-      await _loadData();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Status diubah menjadi $status')),
+      await ApiService.updateStatusLaporan(
+        id: widget.reportId.toString(),
+        status: status,
       );
+      await _loadData();
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Status diubah menjadi $status')));
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
     }
   }
 
@@ -67,25 +77,42 @@ class _ManajemenLaporanDetailScreenState extends State<ManajemenLaporanDetailScr
           decoration: const InputDecoration(hintText: 'Tulis komentar...'),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Batal')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Batal'),
+          ),
           ElevatedButton(
             onPressed: () async {
               final text = controller.text.trim();
               if (text.isEmpty) return;
               try {
                 if (komentar == null) {
-                  await ApiService.tambahKomentar(reportId: widget.reportId, comment: text);
+                  await ApiService.tambahKomentar(
+                    reportId: widget.reportId,
+                    comment: text,
+                  );
                 } else {
-                  await ApiService.updateKomentar(commentId: komentar['id'], comment: text);
+                  await ApiService.updateKomentar(
+                    commentId: komentar['id'],
+                    comment: text,
+                  );
                 }
                 Navigator.pop(context);
                 await _loadData();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(komentar == null ? 'Komentar ditambahkan.' : 'Komentar diperbarui.')),
+                  SnackBar(
+                    content: Text(
+                      komentar == null
+                          ? 'Komentar ditambahkan.'
+                          : 'Komentar diperbarui.',
+                    ),
+                  ),
                 );
               } catch (e) {
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text(e.toString())));
               }
             },
             child: const Text('Simpan'),
@@ -102,8 +129,14 @@ class _ManajemenLaporanDetailScreenState extends State<ManajemenLaporanDetailScr
         title: const Text('Hapus Komentar'),
         content: const Text('Yakin ingin menghapus komentar ini?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
-          ElevatedButton(onPressed: () => Navigator.pop(context, true), child: const Text('Hapus')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Hapus'),
+          ),
         ],
       ),
     );
@@ -112,9 +145,13 @@ class _ManajemenLaporanDetailScreenState extends State<ManajemenLaporanDetailScr
       try {
         await ApiService.hapusKomentar(commentId);
         await _loadData();
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Komentar berhasil dihapus.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Komentar berhasil dihapus.')),
+        );
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.toString())));
       }
     }
   }
@@ -127,220 +164,258 @@ class _ManajemenLaporanDetailScreenState extends State<ManajemenLaporanDetailScr
   }
 
   Widget _buildRiwayatStatus() {
-  if (statusHistories.isEmpty) {
-    return Text('Belum ada riwayat status.', style: GoogleFonts.poppins());
+    if (statusHistories.isEmpty) {
+      return Text('Belum ada riwayat status.', style: GoogleFonts.poppins());
+    }
+
+    return Column(
+      children: statusHistories.map((status) {
+        final oleh = status['changed_by'] == report['user_uid']
+            ? 'User'
+            : 'Admin';
+        return Card(
+          margin: const EdgeInsets.only(bottom: 8),
+          child: ListTile(
+            leading: const Icon(Icons.history, color: Colors.deepPurple),
+            title: Text(
+              status['status'],
+              style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
+            ),
+            subtitle: Text(
+              'Oleh: $oleh • ${DateFormatter.fromIso(status['createdAt'])}',
+              style: GoogleFonts.poppins(fontSize: 13),
+            ),
+          ),
+        );
+      }).toList(),
+    );
   }
 
-  return Column(
-    children: statusHistories.map((status) {
-      final oleh = status['changed_by'] == report['user_uid'] ? 'User' : 'Admin';
-      return Card(
-        margin: const EdgeInsets.only(bottom: 8),
-        child: ListTile(
-          leading: const Icon(Icons.history, color: Colors.deepPurple),
-          title: Text(status['status'], style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
-          subtitle: Text(
-            'Oleh: $oleh • ${DateFormatter.fromIso(status['createdAt'])}',
-            style: GoogleFonts.poppins(fontSize: 13),
-          ),
-        ),
-      );
-    }).toList(),
-  );
-}
-
-
- Widget _buildKomentarList() {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      if (comments.isEmpty)
-        Text('Belum ada komentar', style: GoogleFonts.poppins())
-      else
-        ...comments.map((komentar) {
-          final oleh = komentar['user_uid'] == report['user_uid'] ? 'User' : 'Admin';
-          return Card(
-            margin: const EdgeInsets.only(bottom: 8),
-            child: ListTile(
-              leading: const Icon(Icons.comment, color: Colors.deepPurple),
-              title: Text(komentar['comment'] ?? '', style: GoogleFonts.poppins()),
-              subtitle: Text(
-                '$oleh • ${komentar['createdAt'] != null ? DateFormatter.fromIso(komentar['createdAt']) : '-'}',
-                style: GoogleFonts.poppins(fontSize: 13),
+  Widget _buildKomentarList() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (comments.isEmpty)
+          Text('Belum ada komentar', style: GoogleFonts.poppins())
+        else
+          ...comments.map((komentar) {
+            final oleh = komentar['user_uid'] == report['user_uid']
+                ? 'User'
+                : 'Admin';
+            return Card(
+              margin: const EdgeInsets.only(bottom: 8),
+              child: ListTile(
+                leading: const Icon(Icons.comment, color: Colors.deepPurple),
+                title: Text(
+                  komentar['comment'] ?? '',
+                  style: GoogleFonts.poppins(),
+                ),
+                subtitle: Text(
+                  '$oleh • ${komentar['createdAt'] != null ? DateFormatter.fromIso(komentar['createdAt']) : '-'}',
+                  style: GoogleFonts.poppins(fontSize: 13),
+                ),
+                trailing: PopupMenuButton<String>(
+                  onSelected: (value) {
+                    if (value == 'edit') {
+                      _showKomentarDialog(komentar: komentar);
+                    } else if (value == 'delete') {
+                      _konfirmasiHapusKomentar(komentar['id']);
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(value: 'edit', child: Text('Edit')),
+                    const PopupMenuItem(value: 'delete', child: Text('Hapus')),
+                  ],
+                ),
               ),
-              trailing: PopupMenuButton<String>(
-                onSelected: (value) {
-                  if (value == 'edit') {
-                    _showKomentarDialog(komentar: komentar);
-                  } else if (value == 'delete') {
-                    _konfirmasiHapusKomentar(komentar['id']);
-                  }
-                },
-                itemBuilder: (context) => [
-                  const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                  const PopupMenuItem(value: 'delete', child: Text('Hapus')),
-                ],
+            );
+          }),
+        const SizedBox(height: 12),
+        Align(
+          alignment: Alignment.centerRight,
+          child: ElevatedButton.icon(
+            onPressed: () => _showKomentarDialog(),
+            icon: const Icon(Icons.add_comment),
+            label: Text('Tambah Komentar', style: GoogleFonts.poppins()),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.deepPurple,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             ),
-          );
-        }),
-      const SizedBox(height: 12),
-      Align(
-        alignment: Alignment.centerRight,
-        child: ElevatedButton.icon(
-          onPressed: () => _showKomentarDialog(),
-          icon: const Icon(Icons.add_comment),
-          label: Text('Tambah Komentar', style: GoogleFonts.poppins()),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.deepPurple,
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           ),
         ),
-      ),
-    ],
-  );
-}
-
+      ],
+    );
+  }
 
   @override
-Widget build(BuildContext context) {
-  return Scaffold(
-    backgroundColor: const Color(0xFFF8F9FA),
-    appBar: AppBar(
-      title: Text(
-        'Detail Laporan (Admin)',
-        style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FA),
+      appBar: AppBar(
+        title: Text(
+          'Detail Laporan (Admin)',
+          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+        ),
+        backgroundColor: Colors.deepPurple,
+        foregroundColor: Colors.white,
       ),
-      backgroundColor: Colors.deepPurple,
-      foregroundColor: Colors.white,
-    ),
-    body: FutureBuilder<void>(
-      future: _loadDataFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(
-            child: Text(
-              'Error: ${snapshot.error}',
-              style: GoogleFonts.poppins(color: Colors.red),
-            ),
-          );
-        }
-
-        final title = report['title'] ?? '-';
-        final desc = report['description'] ?? '-';
-
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.bold),
+      body: FutureBuilder<void>(
+        future: _loadDataFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(
+              child: Text(
+                'Error: ${snapshot.error}',
+                style: GoogleFonts.poppins(color: Colors.red),
               ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
-                  const SizedBox(width: 4),
-                  Text(
-                    DateFormatter.fromIso(report['createdAt'] ?? ''),
-                    style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey[600]),
+            );
+          }
+
+          final title = report['title'] ?? '-';
+          final desc = report['description'] ?? '-';
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.poppins(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
                   ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Text(
-                desc,
-                style: GoogleFonts.poppins(fontSize: 15),
-              ),
-              const SizedBox(height: 16),
-              if (report['image_url'] != null)
-  Column(
-    children: [
-      GestureDetector(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => ImagePreviewScreen(
-                imageUrl: '${ApiService.baseUrl}/${report['image_url']}',
-              ),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.calendar_today,
+                      size: 16,
+                      color: Colors.grey,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      DateFormatter.fromIso(report['createdAt'] ?? ''),
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text(desc, style: GoogleFonts.poppins(fontSize: 15)),
+                const SizedBox(height: 16),
+                if (report['image_url'] != null)
+                  Column(
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ImagePreviewScreen(
+                                imageUrl:
+                                    '${ApiService.baseUrl}/${report['image_url']}',
+                              ),
+                            ),
+                          );
+                        },
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.network(
+                            '${ApiService.baseUrl}/${report['image_url']}',
+                            height: 200,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 24,
+                      ), // ⬅️ Selalu beri jarak jika gambar ada
+                    ],
+                  )
+                else
+                  const SizedBox(
+                    height: 24,
+                  ), // ⬅️ Jika tidak ada gambar, tetap beri jarak
+                // lalu lanjut ke dropdown
+                DropdownButtonFormField<String>(
+                  value: report['status'],
+                  decoration: InputDecoration(
+                    labelText: 'Ubah Status Laporan',
+                    labelStyle: GoogleFonts.poppins(),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                  ),
+                  items: const [
+                    DropdownMenuItem(
+                      value: 'pending',
+                      child: Text('Belum Diproses'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'on_progress',
+                      child: Text('Sedang Diproses'),
+                    ),
+                    DropdownMenuItem(value: 'resolved', child: Text('Selesai')),
+                    DropdownMenuItem(value: 'rejected', child: Text('Ditolak')),
+                    DropdownMenuItem(
+                      value: 'canceled',
+                      child: Text('Dibatalkan'),
+                    ),
+                  ],
+                  onChanged: (value) {
+                    if (value != null && value != report['status']) {
+                      _ubahStatus(value);
+                    }
+                  },
+                ),
+
+                const SizedBox(height: 32),
+
+                // Riwayat Status
+                Text(
+                  'Riwayat Status',
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                _buildRiwayatStatus(),
+
+                const SizedBox(height: 32),
+                Text(
+                  'Komentar',
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                _buildKomentarList(),
+
+                const SizedBox(height: 100),
+              ],
             ),
           );
         },
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: Image.network(
-            '${ApiService.baseUrl}/${report['image_url']}',
-            height: 200,
-            width: double.infinity,
-            fit: BoxFit.cover,
-          ),
-        ),
       ),
-      const SizedBox(height: 24), // ⬅️ Selalu beri jarak jika gambar ada
-    ],
-  )
-else
-  const SizedBox(height: 24), // ⬅️ Jika tidak ada gambar, tetap beri jarak
-
-// lalu lanjut ke dropdown
-DropdownButtonFormField<String>(
-  value: report['status'],
-  decoration: InputDecoration(
-    labelText: 'Ubah Status Laporan',
-    labelStyle: GoogleFonts.poppins(),
-    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-  ),
-  items: const [
-    DropdownMenuItem(value: 'pending', child: Text('Belum Diproses')),
-    DropdownMenuItem(value: 'on_progress', child: Text('Sedang Diproses')),
-    DropdownMenuItem(value: 'resolved', child: Text('Selesai')),
-    DropdownMenuItem(value: 'rejected', child: Text('Ditolak')),
-    DropdownMenuItem(value: 'canceled', child: Text('Dibatalkan')),
-  ],
-  onChanged: (value) {
-    if (value != null && value != report['status']) {
-      _ubahStatus(value);
-    }
-  },
-),
-
-              const SizedBox(height: 32),
-
-              // Riwayat Status
-              Text(
-                'Riwayat Status',
-                style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 8),
-              _buildRiwayatStatus(),
-
-              const SizedBox(height: 32),
-              Text(
-                'Komentar',
-                style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 8),
-              _buildKomentarList(),
-
-              const SizedBox(height: 100),
-            ],
-          ),
-        );
-      },
-    ),
-  );
-}
-
-
-
+    );
+  }
 }
 
 class ImagePreviewScreen extends StatelessWidget {
@@ -357,11 +432,7 @@ class ImagePreviewScreen extends StatelessWidget {
         foregroundColor: Colors.white,
         elevation: 0,
       ),
-      body: Center(
-        child: InteractiveViewer(
-          child: Image.network(imageUrl),
-        ),
-      ),
+      body: Center(child: InteractiveViewer(child: Image.network(imageUrl))),
     );
   }
 }

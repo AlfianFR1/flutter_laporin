@@ -10,9 +10,7 @@ class ProfilScreen extends ConsumerWidget {
     final userStateAsync = ref.watch(userProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profil Saya'),
-      ),
+      appBar: AppBar(title: const Text('Profil Saya')),
       body: userStateAsync.when(
         data: (userState) => Padding(
           padding: const EdgeInsets.all(24),
@@ -42,9 +40,8 @@ class ProfilScreen extends ConsumerWidget {
           ),
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stackTrace) => Center(
-          child: Text('Terjadi kesalahan: $error'),
-        ),
+        error: (error, stackTrace) =>
+            Center(child: Text('Terjadi kesalahan: $error')),
       ),
     );
   }

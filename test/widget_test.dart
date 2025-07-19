@@ -6,11 +6,7 @@ import 'package:laporin/main.dart'; // pastikan ini sudah pakai ProviderScope di
 
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    await tester.pumpWidget(
-      const ProviderScope(
-        child: MyApp(),
-      ),
-    );
+    await tester.pumpWidget(const ProviderScope(child: MyApp()));
 
     expect(find.text('0'), findsOneWidget);
     expect(find.text('1'), findsNothing);

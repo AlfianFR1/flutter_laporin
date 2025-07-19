@@ -25,10 +25,7 @@ class _DaftarPenggunaScreenState extends State<DaftarPenggunaScreen> {
       appBar: AppBar(
         title: Text(
           'Daftar Pengguna',
-          style: GoogleFonts.poppins(
-            fontWeight: FontWeight.w600,
-            fontSize: 20,
-          ),
+          style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 20),
         ),
         backgroundColor: Colors.deepPurple,
         foregroundColor: Colors.white,
@@ -53,7 +50,10 @@ class _DaftarPenggunaScreenState extends State<DaftarPenggunaScreen> {
             return Center(
               child: Text(
                 'Belum ada pengguna.',
-                style: GoogleFonts.poppins(fontSize: 16, color: Colors.grey[700]),
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  color: Colors.grey[700],
+                ),
               ),
             );
           }
@@ -104,11 +104,17 @@ class _DaftarPenggunaScreenState extends State<DaftarPenggunaScreen> {
                           const SizedBox(height: 4),
                           Text(
                             user['email'] ?? 'Email tidak tersedia',
-                            style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[700]),
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              color: Colors.grey[700],
+                            ),
                           ),
                           Text(
                             'Role: ${user['role'] ?? 'user'}',
-                            style: GoogleFonts.poppins(fontSize: 13, color: Colors.deepPurple),
+                            style: GoogleFonts.poppins(
+                              fontSize: 13,
+                              color: Colors.deepPurple,
+                            ),
                           ),
                         ],
                       ),

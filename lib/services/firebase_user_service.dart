@@ -3,8 +3,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class FirebaseUserService {
-  final CollectionReference usersRef =
-      FirebaseFirestore.instance.collection('users');
+  final CollectionReference usersRef = FirebaseFirestore.instance.collection(
+    'users',
+  );
 
   Future<void> saveUserToFirestore(User user, String role) async {
     await usersRef.doc(user.uid).set({

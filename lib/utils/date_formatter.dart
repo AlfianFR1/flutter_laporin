@@ -12,7 +12,6 @@ class DateFormatter {
   }
 
   static String formatShort(DateTime dateTime) {
-  return DateFormat('dd/MM/yyyy', 'id_ID').format(dateTime.toLocal());
-}
-
+    return DateFormat('dd/MM/yyyy', 'id_ID').format(dateTime.toLocal());
+  }
 }

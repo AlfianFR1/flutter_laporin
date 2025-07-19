@@ -11,7 +11,8 @@ class UserDashboardScreen extends ConsumerStatefulWidget {
   const UserDashboardScreen({super.key});
 
   @override
-  ConsumerState<UserDashboardScreen> createState() => _UserDashboardScreenState();
+  ConsumerState<UserDashboardScreen> createState() =>
+      _UserDashboardScreenState();
 }
 
 class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen> {
@@ -23,181 +24,194 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen> {
     _statistikFuture = ApiService.ambilStatistikLaporanUser();
   }
 
-void _logout() async {
-  await FirebaseAuth.instance.signOut();
-  await ref.read(userProvider.notifier).clearUser();
-  context.go('/login');
-}
-
+  void _logout() async {
+    await FirebaseAuth.instance.signOut();
+    await ref.read(userProvider.notifier).clearUser();
+    context.go('/login');
+  }
 
   void _goTo(BuildContext context, String route) {
     context.push(route);
   }
 
   @override
- 
-@override
-Widget build(BuildContext context) {
-  final user = ref.watch(userProvider).maybeWhen(
-    data: (data) => data,
-    orElse: () => null,
-  );
+  @override
+  Widget build(BuildContext context) {
+    final user = ref
+        .watch(userProvider)
+        .maybeWhen(data: (data) => data, orElse: () => null);
 
-  return Scaffold(
-    backgroundColor: const Color(0xFFF8F9FA),
-    appBar: AppBar(
-      title: Text(
-        'Lapor Pak Kades',
-        style: GoogleFonts.poppins(
-          fontWeight: FontWeight.bold,
-          color: Colors.black87,
-        ),
-      ),
-      backgroundColor: Colors.white,
-      elevation: 0,
-      iconTheme: const IconThemeData(color: Colors.black87),
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.logout),
-          tooltip: 'Logout',
-          onPressed: () async {
-            await FirebaseAuth.instance.signOut();
-            await ref.read(userProvider.notifier).clearUser();
-            context.go('/login');
-          },
-        ),
-      ],
-    ),
-    body: SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header: Profil pengguna
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 6,
-                  offset: const Offset(0, 3),
-                )
-              ],
-            ),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 32,
-                  backgroundImage: user?.photoURL != null
-                      ? NetworkImage(user!.photoURL!)
-                      : null,
-                  backgroundColor: Colors.deepPurple.shade100,
-                  child: user?.photoURL == null
-                      ? const Icon(Icons.person, size: 32, color: Colors.deepPurple)
-                      : null,
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        user?.displayName ?? 'Pengguna',
-                        style: GoogleFonts.poppins(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        user?.email ?? '-',
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          color: Colors.grey[700],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FA),
+      appBar: AppBar(
+        title: Text(
+          'Lapor Pak Kades',
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
           ),
-          const SizedBox(height: 24),
-
-          // Statistik Laporan
-          FutureBuilder<Map<String, dynamic>>(
-            future: _statistikFuture,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              } else if (snapshot.hasError) {
-                return const Text('❌ Gagal memuat statistik laporan');
-              }
-
-              final data = snapshot.data!;
-              return Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _StatBox(label: 'Laporan', value: data['total'], color: Colors.deepPurple),
-                  _StatBox(label: 'Selesai', value: data['resolved'], color: Colors.green),
-                  _StatBox(label: 'Tolak/Batal', value: data['rejected'], color: Colors.redAccent),
-                ],
-              );
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.black87),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Logout',
+            onPressed: () async {
+              await FirebaseAuth.instance.signOut();
+              await ref.read(userProvider.notifier).clearUser();
+              context.go('/login');
             },
-          ),
-          const SizedBox(height: 32),
-
-          Center(
-            child: Text(
-              'Menu Utama',
-              style: GoogleFonts.poppins(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey[800],
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            children: [
-              _UserMenuCard(
-                icon: Icons.add_circle,
-                title: 'Buat Laporan',
-                color: Colors.green,
-                onTap: () async {
-                  await context.push('/buat-laporan');
-                  setState(() {
-                    _statistikFuture = ApiService.ambilStatistikLaporanUser();
-                  });
-                },
-              ),
-              _UserMenuCard(
-                icon: Icons.list_alt,
-                title: 'Laporan Saya',
-                color: Colors.deepPurple,
-                onTap: () async {
-                  await context.push('/laporan-saya');
-                  setState(() {
-                    _statistikFuture = ApiService.ambilStatistikLaporanUser();
-                  });
-                },
-              ),
-            ],
           ),
         ],
       ),
-    ),
-  );
-}
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header: Profil pengguna
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 6,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 32,
+                    backgroundImage: user?.photoURL != null
+                        ? NetworkImage(user!.photoURL!)
+                        : null,
+                    backgroundColor: Colors.deepPurple.shade100,
+                    child: user?.photoURL == null
+                        ? const Icon(
+                            Icons.person,
+                            size: 32,
+                            color: Colors.deepPurple,
+                          )
+                        : null,
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          user?.displayName ?? 'Pengguna',
+                          style: GoogleFonts.poppins(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          user?.email ?? '-',
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            color: Colors.grey[700],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Statistik Laporan
+            FutureBuilder<Map<String, dynamic>>(
+              future: _statistikFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return const Text('❌ Gagal memuat statistik laporan');
+                }
+
+                final data = snapshot.data!;
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _StatBox(
+                      label: 'Laporan',
+                      value: data['total'],
+                      color: Colors.deepPurple,
+                    ),
+                    _StatBox(
+                      label: 'Selesai',
+                      value: data['resolved'],
+                      color: Colors.green,
+                    ),
+                    _StatBox(
+                      label: 'Tolak/Batal',
+                      value: data['rejected'],
+                      color: Colors.redAccent,
+                    ),
+                  ],
+                );
+              },
+            ),
+            const SizedBox(height: 32),
+
+            Center(
+              child: Text(
+                'Menu Utama',
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[800],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            GridView.count(
+              crossAxisCount: 2,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+              children: [
+                _UserMenuCard(
+                  icon: Icons.add_circle,
+                  title: 'Buat Laporan',
+                  color: Colors.green,
+                  onTap: () async {
+                    await context.push('/buat-laporan');
+                    setState(() {
+                      _statistikFuture = ApiService.ambilStatistikLaporanUser();
+                    });
+                  },
+                ),
+                _UserMenuCard(
+                  icon: Icons.list_alt,
+                  title: 'Laporan Saya',
+                  color: Colors.deepPurple,
+                  onTap: () async {
+                    await context.push('/laporan-saya');
+                    setState(() {
+                      _statistikFuture = ApiService.ambilStatistikLaporanUser();
+                    });
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _StatBox extends StatelessWidget {

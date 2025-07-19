@@ -67,45 +67,41 @@ class ApiService {
     return result['data'];
   }
 
+  static Future<Map<String, dynamic>> ambilStatistikLaporanUser() async {
+    final token = await _getToken();
 
-static Future<Map<String, dynamic>> ambilStatistikLaporanUser() async {
-  final token = await _getToken();
+    final response = await http.get(
+      Uri.parse('$baseUrl/my-report-stats'),
+      headers: {HttpHeaders.authorizationHeader: 'Bearer $token'},
+    );
 
-  final response = await http.get(
-    Uri.parse('$baseUrl/my-report-stats'),
-    headers: {HttpHeaders.authorizationHeader: 'Bearer $token'},
-  );
+    final result = await _parseResponse(response);
+    return result['data']; // Mengembalikan { total, resolved, rejected }
+  }
 
-  final result = await _parseResponse(response);
-  return result['data']; // Mengembalikan { total, resolved, rejected }
-}
+  static Future<Map<String, dynamic>> ambilSemuaStatistikLaporan() async {
+    final token = await _getToken();
 
-static Future<Map<String, dynamic>> ambilSemuaStatistikLaporan() async {
-  final token = await _getToken();
+    final response = await http.get(
+      Uri.parse('$baseUrl/report-stats'),
+      headers: {HttpHeaders.authorizationHeader: 'Bearer $token'},
+    );
 
-  final response = await http.get(
-    Uri.parse('$baseUrl/report-stats'),
-    headers: {HttpHeaders.authorizationHeader: 'Bearer $token'},
-  );
+    final result = await _parseResponse(response);
+    return result['data']; // Mengembalikan { total, resolved, rejected }
+  }
 
-  final result = await _parseResponse(response);
-  return result['data']; // Mengembalikan { total, resolved, rejected }
-}
+  static Future<List<Map<String, dynamic>>> ambilSemuaUsers() async {
+    final token = await _getToken();
 
-static Future<List<Map<String, dynamic>>> ambilSemuaUsers() async {
-  final token = await _getToken();
+    final response = await http.get(
+      Uri.parse('$baseUrl/users'),
+      headers: {HttpHeaders.authorizationHeader: 'Bearer $token'},
+    );
 
-  final response = await http.get(
-    Uri.parse('$baseUrl/users'),
-    headers: {HttpHeaders.authorizationHeader: 'Bearer $token'},
-  );
-
-  final result = await _parseResponse(response);
-  return List<Map<String, dynamic>>.from(result['data']); 
-}
-
-
-
+    final result = await _parseResponse(response);
+    return List<Map<String, dynamic>>.from(result['data']);
+  }
 
   static Future<String> updateLaporan({
     required String id,
@@ -123,7 +119,9 @@ static Future<List<Map<String, dynamic>>> ambilSemuaUsers() async {
 
     if (image != null) {
       final fileBytes = await image.readAsBytes();
-      request.files.add(http.MultipartFile.fromBytes('image', fileBytes, filename: image.name));
+      request.files.add(
+        http.MultipartFile.fromBytes('image', fileBytes, filename: image.name),
+      );
     }
 
     final response = await request.send();
@@ -132,7 +130,7 @@ static Future<List<Map<String, dynamic>>> ambilSemuaUsers() async {
     return _handleResponse(response.statusCode, respStr);
   }
 
-    static Future<String> updateStatusLaporan({
+  static Future<String> updateStatusLaporan({
     required String id,
     required String status,
   }) async {
@@ -151,8 +149,9 @@ static Future<List<Map<String, dynamic>>> ambilSemuaUsers() async {
     return result['message'] ?? 'Status laporan diperbarui';
   }
 
-
-  static Future<List<Map<String, dynamic>>> ambilStatusHistoryByReportId(int reportId) async {
+  static Future<List<Map<String, dynamic>>> ambilStatusHistoryByReportId(
+    int reportId,
+  ) async {
     final token = await _getToken();
 
     final response = await http.get(
@@ -189,10 +188,7 @@ static Future<List<Map<String, dynamic>>> ambilSemuaUsers() async {
         HttpHeaders.authorizationHeader: 'Bearer $token',
         HttpHeaders.contentTypeHeader: 'application/json',
       },
-      body: jsonEncode({
-        'comment': comment,
-        'type': type,
-      }),
+      body: jsonEncode({'comment': comment, 'type': type}),
     );
 
     final result = await _parseResponse(response);
@@ -212,10 +208,7 @@ static Future<List<Map<String, dynamic>>> ambilSemuaUsers() async {
         HttpHeaders.authorizationHeader: 'Bearer $token',
         HttpHeaders.contentTypeHeader: 'application/json',
       },
-      body: jsonEncode({
-        'comment': comment,
-        if (type != null) 'type': type,
-      }),
+      body: jsonEncode({'comment': comment, if (type != null) 'type': type}),
     );
 
     final result = await _parseResponse(response);
@@ -241,7 +234,9 @@ static Future<List<Map<String, dynamic>>> ambilSemuaUsers() async {
     return token;
   }
 
-  static Future<Map<String, dynamic>> loginWithFirebaseIdToken(String idToken) async {
+  static Future<Map<String, dynamic>> loginWithFirebaseIdToken(
+    String idToken,
+  ) async {
     final response = await http.post(
       Uri.parse('$baseUrl/auth/login'),
       headers: {'Content-Type': 'application/json'},
@@ -251,31 +246,31 @@ static Future<List<Map<String, dynamic>>> ambilSemuaUsers() async {
     return await _parseResponse(response);
   }
 
-static Future<Map<String, dynamic>> _parseResponse(http.Response response) async {
-  final contentType = response.headers['content-type'] ?? '';
-  final body = response.body;
+  static Future<Map<String, dynamic>> _parseResponse(
+    http.Response response,
+  ) async {
+    final contentType = response.headers['content-type'] ?? '';
+    final body = response.body;
 
-  try {
-    if (!contentType.contains('application/json')) {
-      // Log isi body untuk debugging kalau perlu
-      throw Exception();
+    try {
+      if (!contentType.contains('application/json')) {
+        // Log isi body untuk debugging kalau perlu
+        throw Exception();
+      }
+
+      final data = jsonDecode(body);
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return data;
+      } else {
+        throw Exception(data['message'] ?? 'Terjadi kesalahan');
+      }
+    } on FormatException catch (e) {
+      throw Exception('Gagal decode JSON: ${e.message}\nBody: $body');
+    } catch (e) {
+      throw Exception('Server error (${response.statusCode})');
     }
-
-    final data = jsonDecode(body);
-
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      return data;
-    } else {
-      throw Exception(data['message'] ?? 'Terjadi kesalahan');
-    }
-  } on FormatException catch (e) {
-    throw Exception('Gagal decode JSON: ${e.message}\nBody: $body');
-  } catch (e) {
-    throw Exception('Server error (${response.statusCode})');
   }
-}
-
-
 
   static String _handleResponse(int statusCode, String body) {
     try {

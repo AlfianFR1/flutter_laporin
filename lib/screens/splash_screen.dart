@@ -16,9 +16,7 @@ class SplashScreen extends StatelessWidget {
         // Handle error dari auth stream
         if (snapshot.hasError) {
           return const Scaffold(
-            body: Center(
-              child: Text('Terjadi kesalahan saat autentikasi.'),
-            ),
+            body: Center(child: Text('Terjadi kesalahan saat autentikasi.')),
           );
         }
 
@@ -37,9 +35,7 @@ class SplashScreen extends StatelessWidget {
               // Handle error dari getUser
               if (roleSnapshot.hasError) {
                 return const Scaffold(
-                  body: Center(
-                    child: Text('Gagal memuat data pengguna.'),
-                  ),
+                  body: Center(child: Text('Gagal memuat data pengguna.')),
                 );
               }
 

@@ -21,24 +21,24 @@ class _LaporanSayaScreenState extends ConsumerState<LaporanSayaScreen> {
     super.initState();
     // ref belum tersedia di initState, gunakan addPostFrameCallback
     WidgetsBinding.instance.addPostFrameCallback((_) {
-    final user = ref.read(userProvider).maybeWhen(
-      data: (data) => data,
-      orElse: () => null,
-    );
+      final user = ref
+          .read(userProvider)
+          .maybeWhen(data: (data) => data, orElse: () => null);
 
-    final uid = user?.uid;
+      final uid = user?.uid;
 
-    if (uid != null) {
-      setState(() {
-        _laporanFuture = ApiService.ambilLaporanSaya(uid); // uid sudah String, bukan String?
-      });
-    } else {
-      setState(() {
-        _laporanFuture = Future.error('UID tidak ditemukan');
-      });
-    }
-  });
-
+      if (uid != null) {
+        setState(() {
+          _laporanFuture = ApiService.ambilLaporanSaya(
+            uid,
+          ); // uid sudah String, bukan String?
+        });
+      } else {
+        setState(() {
+          _laporanFuture = Future.error('UID tidak ditemukan');
+        });
+      }
+    });
   }
 
   @override
@@ -76,7 +76,10 @@ class _LaporanSayaScreenState extends ConsumerState<LaporanSayaScreen> {
                   return Center(
                     child: Text(
                       'Belum ada laporan.',
-                      style: GoogleFonts.poppins(fontSize: 16, color: Colors.grey),
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        color: Colors.grey,
+                      ),
                     ),
                   );
                 }
@@ -116,7 +119,10 @@ class _LaporanSayaScreenState extends ConsumerState<LaporanSayaScreen> {
                                         width: 80,
                                         height: 80,
                                         color: Colors.grey.shade200,
-                                        child: const Icon(Icons.image_not_supported, color: Colors.grey),
+                                        child: const Icon(
+                                          Icons.image_not_supported,
+                                          color: Colors.grey,
+                                        ),
                                       ),
                               ),
                               const SizedBox(width: 16),
@@ -136,7 +142,11 @@ class _LaporanSayaScreenState extends ConsumerState<LaporanSayaScreen> {
                                     const SizedBox(height: 6),
                                     Row(
                                       children: [
-                                        Icon(Icons.check_circle, size: 16, color: statusColor),
+                                        Icon(
+                                          Icons.check_circle,
+                                          size: 16,
+                                          color: statusColor,
+                                        ),
                                         const SizedBox(width: 4),
                                         Text(
                                           status,

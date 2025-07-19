@@ -9,14 +9,19 @@
 
 ---
 
+## 🔗 Tautan Terkait
+
+- 🌐 **Frontend (Flutter)** – ini repo sekarang
+- 🖥️ **Backend (Express.js + MySQL)**  
+ https://github.com/AlfianFR1/backend_laporin
+
 ## 🚀 Fitur Utama
 
 - 🔐 **Autentikasi Pengguna**
-  - Login dengan Email & Password
   - Login dengan Google (Google Sign-In)
 
 - 📝 **Pengajuan Laporan**
-  - Form pelaporan dengan deskripsi, gambar, dan lokasi
+  - Form pelaporan dengan judul, deskripsi, gambar
   - Riwayat laporan pengguna
 
 - 🔄 **Manajemen Status Laporan**
@@ -77,6 +82,9 @@ Pastikan file berikut sudah tersedia:
 ```bash
 android/app/google-services.json → dari Firebase Console
 Internet aktif (dibutuhkan untuk autentikasi Firebase & koneksi ke API backend)
+
+⚠️ File `lib/firebase_options.dart` diabaikan dari repo karena mengandung konfigurasi Firebase spesifik. Generate ulang file ini menggunakan `flutterfire configure`.
+
 ```
 ## 👨‍💻 Author
 

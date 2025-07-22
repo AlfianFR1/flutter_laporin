@@ -263,7 +263,7 @@ class ApiService {
       if (response.statusCode >= 200 && response.statusCode < 300) {
         return data;
       } else {
-        throw Exception(data['message'] ?? 'Terjadi kesalahan');
+        throw Exception(data['error'] ?? 'Terjadi kesalahan');
       }
     } on FormatException catch (e) {
       throw Exception('Gagal decode JSON: ${e.message}\nBody: $body');
@@ -278,7 +278,7 @@ class ApiService {
       if (statusCode >= 200 && statusCode < 300) {
         return json['message'] ?? 'Berhasil';
       } else {
-        throw Exception(json['message'] ?? 'Terjadi kesalahan');
+        throw Exception(json['error'] ?? 'Terjadi kesalahan');
       }
     } catch (_) {
       throw Exception('Server tidak merespons dengan benar (kode $statusCode)');

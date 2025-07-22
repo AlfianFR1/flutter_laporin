@@ -12,11 +12,12 @@ import 'package:laporin/providers/user_provider.dart'; // AsyncNotifierProvider
 import 'package:intl/date_symbol_data_local.dart';
 
 void main() async {
-  final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
-  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
+  // 🔔 Inisialisasi notifikasi
   await NotificationService.init();
   await initializeDateFormatting('id_ID', null);
 
@@ -30,14 +31,12 @@ class MyApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final userState = ref.watch(userProvider);
 
+    // Router akan dibuat berdasarkan status login user
     final router = userState.when(
-      data: (user) => AppRouter.createRouter(user),
+      data: (user) => AppRouter.createRouter(user), // kamu harus modifikasi createRouter agar menerima UserState
       loading: () => AppRouter.createRouter(null),
       error: (e, _) => AppRouter.createRouter(null),
     );
-
-    /// ❗️Pindahkan di sini agar splash hilang setelah login state diketahui
-    FlutterNativeSplash.remove();
 
     return MaterialApp.router(
       title: 'Lapor.in',

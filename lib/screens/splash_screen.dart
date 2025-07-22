@@ -1,86 +1,41 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:laporin/screens/admin/dashboard_admin.dart';
-import 'package:laporin/screens/auth/login_screen.dart';
-import 'package:laporin/screens/user/dashboard_user.dart';
-import 'package:laporin/services/preferences_helper.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:laporin/providers/user_provider.dart';
 
-class SplashScreen extends StatelessWidget {
+class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<User?>(
-      stream: FirebaseAuth.instance.authStateChanges(),
-      builder: (context, snapshot) {
-        // Handle error dari auth stream
-        if (snapshot.hasError) {
-          return const Scaffold(
-            body: Center(child: Text('Terjadi kesalahan saat autentikasi.')),
-          );
-        }
-
-        // Tampilkan loading saat auth state belum selesai
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const SplashLoading();
-        }
-
-        final user = snapshot.data;
-
-        if (user != null) {
-          // User login, cek role
-          return FutureBuilder<Map<String, dynamic>?>(
-            future: PreferencesHelper.getUser(),
-            builder: (context, roleSnapshot) {
-              // Handle error dari getUser
-              if (roleSnapshot.hasError) {
-                return const Scaffold(
-                  body: Center(child: Text('Gagal memuat data pengguna.')),
-                );
-              }
-
-              if (roleSnapshot.connectionState == ConnectionState.waiting) {
-                return const SplashLoading();
-              }
-
-              final role = roleSnapshot.data?['role'];
-
-              if (role == 'admin') {
-                return const AdminDashboardScreen();
-              } else if (role == 'user') {
-                return const UserDashboardScreen();
-              } else {
-                // Fallback: role tidak ditemukan atau null
-                return const LoginScreen();
-              }
-            },
-          );
-        } else {
-          // Belum login
-          return const LoginScreen();
-        }
-      },
-    );
-  }
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-/// Widget splash loading dengan logo + loading spinner
-class SplashLoading extends StatelessWidget {
-  const SplashLoading({super.key});
+class _SplashScreenState extends ConsumerState<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+
+    // Delay 1 frame agar context tersedia
+    Future.microtask(() {
+      final user = ref.read(userProvider).value;
+      if (user != null) {
+        if (user.isLoggedIn) {
+          if (user.role == 'admin') {
+            context.go('/adminDashboard');
+          } else {
+            context.go('/userDashboard');
+          }
+        } else {
+          context.go('/login');
+        }
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            FlutterLogo(size: 80),
-            SizedBox(height: 20),
-            CircularProgressIndicator(),
-          ],
-        ),
-      ),
+      body: Center(child: CircularProgressIndicator()),
     );
   }
 }

@@ -161,13 +161,13 @@ class FirebaseGoogleSignInService {
       final role = data['role'] ?? 'user';
 
       // 4. Simpan ke local storage
-      await PreferencesHelper.saveUser(
-        uid: firebaseUser.uid,
-        email: firebaseUser.email ?? '',
-        role: role,
-        displayName: firebaseUser.displayName ?? '',
-        photoURL: firebaseUser.photoURL ?? '',
-      );
+      // await PreferencesHelper.saveUser(
+      //   uid: firebaseUser.uid,
+      //   email: firebaseUser.email ?? '',
+      //   role: role,
+      //   displayName: firebaseUser.displayName ?? '',
+      //   photoURL: firebaseUser.photoURL ?? '',
+      // );
 
       // 5. Set juga ke provider
       await ref

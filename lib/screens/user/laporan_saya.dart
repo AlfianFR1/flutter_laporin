@@ -14,7 +14,8 @@ class LaporanSayaScreen extends ConsumerStatefulWidget {
 }
 
 class _LaporanSayaScreenState extends ConsumerState<LaporanSayaScreen> {
-  late Future<List<Map<String, dynamic>>> _laporanFuture;
+  Future<List<Map<String, dynamic>>>? _laporanFuture;
+
 
   @override
   void initState() {

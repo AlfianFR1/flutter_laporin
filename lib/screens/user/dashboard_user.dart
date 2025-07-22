@@ -27,6 +27,7 @@ class _UserDashboardScreenState extends ConsumerState<UserDashboardScreen> {
   void _logout() async {
     await FirebaseAuth.instance.signOut();
     await ref.read(userProvider.notifier).clearUser();
+    ref.invalidate(userProvider);
     context.go('/login');
   }
 
